@@ -10,6 +10,16 @@ import "./Register.css";
 
 const Register = () => {
   const { enqueueSnackbar } = useSnackbar();
+  const [userdata,setUserdata] = useState({});
+  const [loading,setLoading] =useState(false);
+  const handleInput = async (e) =>{
+      setUserdata(() => ({
+        ...userdata,
+        [e.target.name] : e.target.value
+      }))
+    }
+    
+  
 
 
   // TODO: CRIO_TASK_MODULE_REGISTER - Implement the register function
@@ -35,9 +45,59 @@ const Register = () => {
    *      "message": "Username is already taken"
    * }
    */
+const performApiCall = async () => {
+  let responsedata;
+  let error= false;
+  setLoading(true);
+  try{
+  let response = await axios.post(`${config.endpoint}/auth/register`,{
+    username : userdata.username,
+    password : userdata.password
+  });
+  responsedata= response.data;
+  setLoading(false)
+}catch(e){
+  if(e.response.status==400) {
+    responsedata = e.response.data;
+  }else error = true;
+  setLoading(false)
+}
+if(await validateResponse(responsedata,error)){
+  return responsedata;
+}
+}
+
+const validateResponse = async (response,error) => {
+  if(error || (!response.success && !response.message)){
+    enqueueSnackbar("Something went wrong. Check that the backend is running, reachable and returns valid JSON.",{ variant: `error` });
+    return false;
+  }
+  if(!response.success ){
+    enqueueSnackbar(response.message,{ variant: `error` });
+    return false;
+  }
+  return true;
+}
   const register = async (formData) => {
+   //const validateInput = await validateInput(formData);
+   if(await validateInput(formData)){
+     const response = await performApiCall();
+     if(response){
+      setUserdata(userdata => ({
+        ...userdata,
+        username: "",
+        password: "",
+        confirmPassword: ""
+      }));
+       enqueueSnackbar("Registered Successfully !",{ variant: `success` });
+     }
+   }
+    
+    
+
   };
 
+ 
   // TODO: CRIO_TASK_MODULE_REGISTER - Implement user input validation logic
   /**
    * Validate the input values so that any bad or illegal values are not passed to the backend.
@@ -56,18 +116,38 @@ const Register = () => {
    * -    Check that password field is not less than 6 characters in length - "Password must be at least 6 characters"
    * -    Check that confirmPassword field has the same value as password field - Passwords do not match
    */
-  const validateInput = (data) => {
+  const validateInput = async (data) => {
+    if(!data.username || data.username.length==0) {
+      enqueueSnackbar("Username is a required field",{ variant: `warning` });
+      return false;
+    }
+    if(data.username && data.username.length <6) 
+    {
+      enqueueSnackbar("Username must be at least 6 characters",{ variant: `warning` });
+      return false;
+    }
+    if(!data.password|| data.password.length==0) {
+      enqueueSnackbar("Password is a required field",{ variant: `warning` });
+      return false;
+    }
+    if(data.password && data.password.length < 6) {
+      enqueueSnackbar("Password must be at least 6 characters",{ variant: `warning` });
+      return false;
+    }
+    if(data.password && data.confirmPassword && data.password!==data.confirmPassword) {
+      enqueueSnackbar("Passwords do not match",{ variant: `warning` });
+      return false;
+    }
+    
+    
+    
+    return true;
   };
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      justifyContent="space-between"
-      minHeight="100vh"
-    >
+    <>
       <Header hasHiddenAuthButtons />
-      <Box className="content">
+      <div className="content">
         <Stack spacing={2} className="form">
           <h2 className="title">Register</h2>
           <TextField
@@ -77,6 +157,7 @@ const Register = () => {
             title="Username"
             name="username"
             placeholder="Enter Username"
+            onChange = {(e) => { handleInput(e)}}
             fullWidth
           />
           <TextField
@@ -84,21 +165,24 @@ const Register = () => {
             variant="outlined"
             label="Password"
             name="password"
-            type="password"
+            type="password"  
             helperText="Password must be atleast 6 characters length"
+            onChange = {handleInput}
             fullWidth
           />
           <TextField
             id="confirmPassword"
             variant="outlined"
             label="Confirm Password"
-            name="confirmPassword"
+            name="confirmPassword"  
             type="password"
+            onChange = {handleInput}
             fullWidth
           />
-          <Button className="button" variant="contained">
+          <Button className="button" variant="contained" onClick={() => register(userdata)}>
             Register Now
           </Button>
+          {loading && <CircularProgress />}
           <p className="secondary-action">
             Already have an account?{" "}
             <a className="link" href="#">
@@ -106,9 +190,9 @@ const Register = () => {
             </a>
           </p>
         </Stack>
-      </Box>
+      </div>
       <Footer />
-    </Box>
+    </>
   );
 };
 
