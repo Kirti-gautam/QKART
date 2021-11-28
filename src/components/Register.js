@@ -7,9 +7,11 @@ import { config } from "../App";
 import Footer from "./Footer";
 import Header from "./Header";
 import "./Register.css";
+import { Link, useHistory } from "react-router-dom";
 
-const Register = () => {
+const Register = (props) => {
   const { enqueueSnackbar } = useSnackbar();
+  const history = useHistory();
   const [userdata,setUserdata] = useState({});
   const [loading,setLoading] =useState(false);
   const handleInput = async (e) =>{
@@ -90,6 +92,7 @@ const validateResponse = async (response,error) => {
         confirmPassword: ""
       }));
        enqueueSnackbar("Registered Successfully !",{ variant: `success` });
+       history.push("/login");
      }
    }
     
@@ -157,6 +160,7 @@ const validateResponse = async (response,error) => {
             title="Username"
             name="username"
             placeholder="Enter Username"
+            size="small"
             onChange = {(e) => { handleInput(e)}}
             fullWidth
           />
@@ -166,6 +170,7 @@ const validateResponse = async (response,error) => {
             label="Password"
             name="password"
             type="password"  
+            size="small"
             helperText="Password must be atleast 6 characters length"
             onChange = {handleInput}
             fullWidth
@@ -176,18 +181,19 @@ const validateResponse = async (response,error) => {
             label="Confirm Password"
             name="confirmPassword"  
             type="password"
+            size="small"
             onChange = {handleInput}
             fullWidth
           />
-          <Button className="button" variant="contained" onClick={() => register(userdata)}>
+          <Button variant="contained" onClick={() => register(userdata)}>
             Register Now
           </Button>
           {loading && <CircularProgress />}
           <p className="secondary-action">
-            Already have an account?{" "}
-            <a className="link" href="#">
-              Login here
-            </a>
+            Already have an account?{" "}<Link to="/login" >
+              <a className="link">Login here</a>
+            </Link>
+            
           </p>
         </Stack>
       </div>

@@ -28,3 +28,25 @@
         display: block;
     }
 }
+
+
+  
+  .profile-image {
+    height: 30px;
+    padding-right: 0.5em;
+  }
+ 
+  .header-action {
+    display: flex;
+    align-items: center;
+  }
+  
+  .header-info {
+    padding-right: 2em;
+  }
+  .header-link {
+    padding: 0em 1em;
+    cursor: pointer;
+    color: #1890ff;
+  }
+  

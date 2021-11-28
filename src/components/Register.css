@@ -27,10 +27,12 @@
 }
 
 .secondary-action {
+  display: inline-block;
   padding: 1rem 0;
 }
 
 .link {
+  display: inline;
   font-weight: 700;
   text-decoration: none;
   color: #45c09f;
