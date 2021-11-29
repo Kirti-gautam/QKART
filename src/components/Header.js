@@ -34,6 +34,7 @@ const Header = (props) =>
         >
           <img src="logo_light.svg" alt="QKart-icon"></img>
         </Box>
+        {props.children}
         {props.hasHiddenAuthButtons ? <Button
           className="explore-button"
           startIcon={<ArrowBackIcon />}
@@ -47,10 +48,10 @@ const Header = (props) =>
             <>
               <Avatar
                 src="avatar.png"
-                alt="profile"
+                alt="crio.do"
                 className="profile-image" 
               />
-
+             
               <div className="header-info">
                 {localStorage.getItem("username")}
               </div>
