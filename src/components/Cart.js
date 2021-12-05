@@ -8,7 +8,6 @@ import { Button, IconButton, Stack } from "@mui/material";
 import { Box } from "@mui/system";
 import React from "react";
 import { useHistory } from "react-router-dom";
-import { useSnackbar } from "notistack";
 import "./Cart.css";
 
 // Definition of Data Structures used
@@ -89,10 +88,12 @@ export const getTotalCartValue = (items = []) => {
  * 
  */
 const ItemQuantity = ({
+  isReadOnly = false,
   value,
   handleAdd,
-  handleDelete,
+  handleDelete,  
 }) => {
+if(isReadOnly) return <Box>Qty: {value}</Box>;
   return (
     <Stack direction="row" alignItems="center">
       <IconButton size="small" color="primary" onClick={handleDelete}>
@@ -120,12 +121,15 @@ const ItemQuantity = ({
  * @param {Function} handleDelete
  *    Current quantity of product in cart
  * 
+ * @param {Boolean} isReadOnly
+ *    If product quantity on cart is to be displayed as read only without the + - options to change quantity
  * 
  */
 const Cart = ({
   products,
   items=[],
   handleQuantity,
+  isReadOnly = false
 }) => {
   const history = useHistory();
   const token = localStorage.getItem("token");  
@@ -169,6 +173,7 @@ const Cart = ({
                 alignItems="center"   
             >    
             <ItemQuantity
+            isReadOnly= {isReadOnly}
             value={item.qty}
             handleAdd={async () => {
               await handleQuantity(token,items,item.productId,products,item.qty+1);

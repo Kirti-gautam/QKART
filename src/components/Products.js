@@ -276,7 +276,7 @@ useEffect(() => {
         name="search"
       />
        <Grid container>
-         <Grid item className="product-grid" md={token ? 8 : 12} xs={12} >
+         <Grid item className="product-grid" xs={12} >
            <Box className="hero">
              <p className="hero-heading">
                India’s <span className="hero-highlight">FASTEST DELIVERY</span>{" "}

@@ -151,7 +151,6 @@ describe("Cart Component", () => {
 
   it("should show items in cart view by parsing the response data", () => {
     const item1 = screen.getAllByText(/Tan Leatherette Weekender Duffle/);
-    console.log(item1);
     const item2 = screen.getAllByText(/The Minimalist Slim Leather Watch/);
 
     const item1Price = screen.getAllByText("$150");
@@ -214,7 +213,7 @@ describe("Cart Component", () => {
 
   it("should be able to decrease quantity of product in cart", async () => {
     const btn = screen.getAllByTestId("RemoveOutlinedIcon")[1];
-    console.log(btn)
+
     act(() => {
       userEvent.click(btn);
     });
