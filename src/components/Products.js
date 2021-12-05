@@ -12,6 +12,7 @@ import React, { useEffect, useState } from "react";
 import { config } from "../App";
 import Footer from "./Footer";
 import Header from "./Header";
+import Cart, { generateCartItemsFrom } from "./Cart";
 import "./Products.css";
 import ProductCard from "./ProductCard";
 
@@ -30,9 +31,10 @@ import ProductCard from "./ProductCard";
 const Products = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [loading,setLoading] = useState(false);
-  const [isLoggedIn,setIsLoggedIn] = useState(false);
   const [products,setProducts] = useState([]);
   const [filteredProducts,setFilteredProducts] = useState([]);
+  const [items,setItems] =useState([]);
+  const token= localStorage.getItem("token");
   
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Fetch products data and store it
   /**
@@ -71,13 +73,28 @@ const Products = () => {
    *      "message": "Something went wrong. Check the backend console for more details"
    * }
    */
+const fetchCart = async (token) => {
+  if(!token) return;
+  try{
+    const response = await axios.get(`${config.endpoint}/cart`,{
+      headers: {
+        Authorization : `Bearer ${token}`,
+      }
+    });
+    return response.data;
+  }catch {
+    enqueueSnackbar("Could not fetch cart details. Check that the backend is running, reachable and returns valid JSON",{variant: "error"});
+    return null;
+  } 
+}
+
 useEffect(() => {
-    getProducts();
-    if(localStorage.getItem("token")!==null){
-      setIsLoggedIn(true); 
-    }
-   
-},[])
+    getProducts();  
+},[]);
+
+useEffect(() => {
+  fetchCart(token).then((cartData) => generateCartItemsFrom(cartData,products)).then((cartItems) => setItems(cartItems));  
+},[products]);
 
   const validateResponse = (errored, response) => {
     if (errored || (!response.length && !response.message)) {
@@ -126,14 +143,44 @@ useEffect(() => {
     let response = await performAPICall();
     if(response){
       setProducts(response);
+      setFilteredProducts(response);
     }  
   };
-  useEffect(() => {
-   setFilteredProducts(products);
-}, [products]);
+  const isItemInCart = (items,productId) => {
+    return items.findIndex((item) => item.productId === productId) !== -1;
+  }
 
-  function handleAddToCart(){
-    alert("yes");
+  const addToCart = async(token,items,productId,products,qty,options={preventDuplicate: false})=>{
+    if(!token){
+      enqueueSnackbar("Please log in to add item to cart",{variant: "warning"});
+      return;
+    }
+    if(options.preventDuplicate && isItemInCart(items,productId)) {
+      enqueueSnackbar("Item already in cart. Use the cart sidebar to update quantity or remove item.",{variant : "warning,"});
+      return;
+    }
+
+    try{
+      const response = await axios.post(
+        `${config.endpoint}/cart`,
+        {productId, qty},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
+      const cartItems = generateCartItemsFrom(response.data,products);
+      setItems(cartItems);
+    }catch(e) {
+      if(e.response){
+        enqueueSnackbar(e.response.data.message, { variant: "error"});
+      }else {
+        enqueueSnackbar("Could not fetch products. Check that the backend is running, reachabe and returns valid JSON.",{
+          variant: "error",
+        });
+      }
+    }
   }
 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Implement search logic
@@ -151,14 +198,7 @@ useEffect(() => {
    *
    */
   const performSearch = async (value) => {
-   /* let result =products.filter((prod) => {
-      if(prod["name"].toLowerCase().includes(String(value).toLocaleLowerCase())){
-        return prod;
-      }}
-    );
-    setFilteredProducts(result);
-       return result;*/
-       let response = {};
+      let response = {};
        let errored = false;
    
        setLoading(true);
@@ -199,13 +239,6 @@ useEffect(() => {
       performSearch(value);
     }, delay);
   }
-
-
-
-
-
-
-
   return (
     <div>
       <Header>
@@ -243,7 +276,7 @@ useEffect(() => {
         name="search"
       />
        <Grid container>
-         <Grid item className="product-grid">
+         <Grid item className="product-grid" md={token ? 8 : 12} xs={12} >
            <Box className="hero">
              <p className="hero-heading">
                India’s <span className="hero-highlight">FASTEST DELIVERY</span>{" "}
@@ -251,17 +284,19 @@ useEffect(() => {
              </p>
            </Box>
          </Grid>
-        {products.length!==0 ? (<Grid container spacing={3} style={{margin : "20px"}}>
+        {products.length!==0 ? (<Grid container spacing={2} md={token ? 8 : 12} xs={12} style={{margin : "20px"}}>
          
          {filteredProducts.map((product) => (
            
-           <ProductCard key={product.id} product={product} handleAddToCart={handleAddToCart} />
+           <ProductCard key={product.id} product={product} handleAddToCart={async() => await addToCart(token,items,product._id,products,1,{preventDuplicate: true})} />
          ))}
        </Grid>):  loading ? <div className="loading"><CircularProgress />Loading Products...</div> : (<div>
          No Products Found
         </div>)}
+        {token ? (<Grid xs={12} md={3} bg="#E9F5E1" style={{margin : "20px"}}><Cart items={items} products={products} handleQuantity={addToCart} /></Grid>): null}
          
        </Grid>
+       
       <Footer />
     </div>
   );

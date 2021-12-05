@@ -8,8 +8,7 @@ import { config } from "../App";
 import Footer from "./Footer";
 import Header from "./Header";
 import "./Login.css";
-
-const Login = (props) => {
+function Login() {
   const { enqueueSnackbar } = useSnackbar();
   const history = useHistory();
   const [data,setData] = useState({});
@@ -23,11 +22,6 @@ const Login = (props) => {
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Fetch the API response
   /**
-   * Perform the Login API call
-   * @param {{ username: string, password: string }} formData
-   *  Object with values of username, password and confirm password user entered to register
-   *
-   * API endpoint - "POST /auth/login"
    *
    * Example for successful response from backend:
    * HTTP 201
@@ -202,6 +196,5 @@ const Login = (props) => {
       <Footer />
     </Box>
   );
-};
-
+  };
 export default Login;
